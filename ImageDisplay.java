@@ -182,6 +182,31 @@ public class ImageDisplay {
 		}
 
 	}
+
+	private void Display(){
+		// Use label to display the image
+		frame = new JFrame();
+		GridBagLayout gLayout = new GridBagLayout();
+		frame.getContentPane().setLayout(gLayout);
+
+		lbIm1 = new JLabel(new ImageIcon(imgTwo));
+
+		GridBagConstraints c = new GridBagConstraints();
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.anchor = GridBagConstraints.CENTER;
+		c.weightx = 0.5;
+		c.gridx = 0;
+		c.gridy = 0;
+
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.gridx = 0;
+		c.gridy = 1;
+		frame.getContentPane().add(lbIm1, c);
+
+		frame.pack();
+		frame.setVisible(true);
+	}
+
 	public void showIms(String[] args){
 
 		// Read a parameter from command line
@@ -207,33 +232,16 @@ public class ImageDisplay {
 		if (alising == 1){
 			imgTwo = new BufferedImage(width, height,  BufferedImage.TYPE_INT_RGB);
 			LPF(imgOne, imgTwo);
-			imgOne = imgTwo;
 		}
 
-		// Transformation
-		imgTwo = Transformation(width, height, scale, rotation, imgOne);
+		if (time == 0 || frames == 0){
+			// Transformation
+			imgTwo = Transformation(width, height, scale, rotation, imgTwo);
+			// Use label to display the image
+			Display();
+		}else{
 
-		// Use label to display the image
-		frame = new JFrame();
-		GridBagLayout gLayout = new GridBagLayout();
-		frame.getContentPane().setLayout(gLayout);
-
-		lbIm1 = new JLabel(new ImageIcon(imgTwo));
-
-		GridBagConstraints c = new GridBagConstraints();
-		c.fill = GridBagConstraints.HORIZONTAL;
-		c.anchor = GridBagConstraints.CENTER;
-		c.weightx = 0.5;
-		c.gridx = 0;
-		c.gridy = 0;
-
-		c.fill = GridBagConstraints.HORIZONTAL;
-		c.gridx = 0;
-		c.gridy = 1;
-		frame.getContentPane().add(lbIm1, c);
-
-		frame.pack();
-		frame.setVisible(true);
+		}
 	}
 
 	public static void main(String[] args) {
