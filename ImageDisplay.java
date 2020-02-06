@@ -12,6 +12,9 @@ public class ImageDisplay {
 	BufferedImage imgOne, imgTwo;
 	int width = 512;//1920;
 	int height = 512;//1080;
+	//private int deg;
+	//private int x;
+	//private int y;
 
 	/** Read Image RGB
 	 *  Reads the image of given width and height at the given imgPath into the provided BufferedImage.
@@ -71,11 +74,53 @@ public class ImageDisplay {
 					int oldy = Math.round(y/scale);
 					int pix = old_img.getRGB(oldx, oldy);
 					new_img.setRGB(x, y, pix);
+					//System.out.println(x+","+y);
 				}
 			}
 
 	}
 	
+	private void Rotate(float angle, int width2, int height2, BufferedImage old_img, BufferedImage new_img){
+		int cent_new_x = width2/2;
+		int cent_new_y = height2/2;
+		int cent_x = width/2;
+		int cent_y = height/2;
+		angle = 360-angle;
+		for(int y = 0; y < height2; y++)
+			{
+				for(int x = 0; x < width2; x++)
+				{
+					int oldx = rotate_x(angle, x - cent_new_x, y - cent_new_y) + cent_x;
+					int oldy = rotate_y(angle, x - cent_new_x, y - cent_new_y) + cent_y;
+					int pix;
+					if (oldx < 0 || oldy < 0 || oldx >= width || oldy >= height) pix = 0xffffffff;
+					else pix = old_img.getRGB(oldx, oldy);
+					new_img.setRGB(x, y, pix);
+				}
+			}
+	}
+
+	private int rotate_x(float angle, int x, int y){
+		double rad = Math.toRadians(angle);
+		double ans = Math.cos(rad)*x - Math.sin(rad)*y;
+		return (int) ans;
+	}
+	private int rotate_y(float angle, int x, int y){
+		double rad = Math.toRadians(angle);
+		double ans = Math.sin(rad)*x + Math.cos(rad)*y;
+		return (int) ans;
+	}
+
+	private void LPF(BufferedImage old_img, BufferedImage new_img){
+		for(int y = 0; y < height; y++)
+			{
+				for(int x = 0; x < width; x++)
+				{
+					
+				}
+			}
+
+	}
 	public void showIms(String[] args){
 
 		// Read a parameter from command line
@@ -100,9 +145,43 @@ public class ImageDisplay {
 		if (scale != 1.0) {
 			int width2 = Math.round(width*scale);
 			int height2 = Math.round(height*scale);
-			System.out.println("Scale to: " + width2 +","+ height2);
+			//System.out.println("Scale to: " + width2 +","+ height2);
 			imgTwo = new BufferedImage(width2, height2,  BufferedImage.TYPE_INT_RGB);
 			Scale(scale,imgOne, imgTwo);
+			imgOne = imgTwo;
+			width = width2;
+			height = height2;
+		}
+
+		// Rotate the image
+		while(rotation < 0) rotation += 360;
+		while(rotation >= 360) rotation -= 360;
+		if (rotation != 0){
+			// calculate new size
+			int left, right, up, low;
+			left = 0; right = 0; up = 0; low = 0;
+			int[][] corners = { {width,0},{0,height},{width,height} };
+			for(int c = 0; c <3; c++){
+				left = Math.min(left, rotate_x(rotation, corners[c][0], corners[c][1]));
+				right = Math.max(right, rotate_x(rotation, corners[c][0], corners[c][1]));
+				up = Math.min(up, rotate_y(rotation, corners[c][0], corners[c][1]));
+				low = Math.max(low, rotate_y(rotation, corners[c][0], corners[c][1]));
+			}
+			int width2 = right - left;
+			int height2 = low - up;
+			//System.out.println("The third parameter (rotation) was: " + rotation + "; new size:" + width2 +","+ height2 );
+			imgTwo = new BufferedImage(width2, height2,  BufferedImage.TYPE_INT_RGB);
+			Rotate(rotation, width2, height2, imgOne, imgTwo);
+			imgOne = imgTwo;
+			width = width2;
+			height = height2;
+		}
+
+		// Aliasing
+		if (alising == 1){
+			imgTwo = new BufferedImage(width, height,  BufferedImage.TYPE_INT_RGB);
+			LPF(imgOne, imgTwo);
+			imgOne = imgTwo;
 		}
 
 		// Use label to display the image
@@ -110,7 +189,7 @@ public class ImageDisplay {
 		GridBagLayout gLayout = new GridBagLayout();
 		frame.getContentPane().setLayout(gLayout);
 
-		lbIm1 = new JLabel(new ImageIcon(imgTwo));
+		lbIm1 = new JLabel(new ImageIcon(imgOne));
 
 		GridBagConstraints c = new GridBagConstraints();
 		c.fill = GridBagConstraints.HORIZONTAL;
