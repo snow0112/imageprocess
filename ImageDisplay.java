@@ -67,8 +67,9 @@ public class ImageDisplay {
 			{
 				for(int x = 0; x < width2; x++)
 				{
-
-					int pix = old_img.getRGB(x, y);
+					int oldx = Math.round(x/scale);
+					int oldy = Math.round(y/scale);
+					int pix = old_img.getRGB(oldx, oldy);
 					new_img.setRGB(x, y, pix);
 				}
 			}
