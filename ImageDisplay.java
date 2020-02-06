@@ -112,13 +112,35 @@ public class ImageDisplay {
 	}
 
 	private void LPF(BufferedImage old_img, BufferedImage new_img){
-		for(int y = 0; y < height; y++)
-			{
-				for(int x = 0; x < width; x++)
-				{
-					
+		for(int y = 0; y < height; y++){
+			for(int x = 0; x < width; x++){
+
+				int cnt = 0;
+				int r = 0;
+				int g = 0;
+				int b = 0;
+
+				for (int dx = -1; dx < 2; dx++){
+					for (int dy = -1; dy < 2; dy++){
+						if (x+dx >= 0 && x+dx < width && y+dy >=0 && y+dy < height ){
+							cnt++;
+							int p = old_img.getRGB(x+dx,y+dy);
+							b += ( p & 0xff);
+							p = p>>8;
+							g += ( p & 0xff);
+							p = p>>8;
+							r += ( p & 0xff);
+						}
+					}
 				}
+				r /= cnt;
+				g /= cnt;
+				b /= cnt;
+				int pix = 0xff000000 | ((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff);
+				new_img.setRGB(x, y, pix);
+
 			}
+		}
 
 	}
 	public void showIms(String[] args){
