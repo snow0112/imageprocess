@@ -86,12 +86,12 @@ public class ImageDisplay {
 		int cent_x = width/2;
 		int cent_y = height/2;
 		angle = 360-angle;
-		for(int y = 0; y < height2; y++)
+		for(int y = 0; y < height; y++)
 			{
-				for(int x = 0; x < width2; x++)
+				for(int x = 0; x < width; x++)
 				{
-					int oldx = rotate_x(angle, x - cent_new_x, y - cent_new_y) + cent_x;
-					int oldy = rotate_y(angle, x - cent_new_x, y - cent_new_y) + cent_y;
+					int oldx = (int)rotate_x(angle, x - cent_new_x, y - cent_new_y) + cent_x;
+					int oldy = (int)rotate_y(angle, x - cent_new_x, y - cent_new_y) + cent_y;
 					int pix;
 					if (oldx < 0 || oldy < 0 || oldx >= width || oldy >= height) pix = 0xffffffff;
 					else pix = old_img.getRGB(oldx, oldy);
@@ -100,15 +100,15 @@ public class ImageDisplay {
 			}
 	}
 
-	private int rotate_x(float angle, int x, int y){
+	private float rotate_x(float angle, int x, int y){
 		double rad = Math.toRadians(angle);
 		double ans = Math.cos(rad)*x - Math.sin(rad)*y;
-		return (int) ans;
+		return (float)ans;
 	}
-	private int rotate_y(float angle, int x, int y){
+	private float rotate_y(float angle, int x, int y){
 		double rad = Math.toRadians(angle);
 		double ans = Math.sin(rad)*x + Math.cos(rad)*y;
-		return (int) ans;
+		return (float) ans;
 	}
 
 	private BufferedImage Transformation(int width, int height, float scale, float rotation, BufferedImage imgOne){
@@ -133,10 +133,10 @@ public class ImageDisplay {
 			left = 0; right = 0; up = 0; low = 0;
 			int[][] corners = { {width,0},{0,height},{width,height} };
 			for(int c = 0; c <3; c++){
-				left = Math.min(left, rotate_x(rotation, corners[c][0], corners[c][1]));
-				right = Math.max(right, rotate_x(rotation, corners[c][0], corners[c][1]));
-				up = Math.min(up, rotate_y(rotation, corners[c][0], corners[c][1]));
-				low = Math.max(low, rotate_y(rotation, corners[c][0], corners[c][1]));
+				left = Math.min(left, (int)rotate_x(rotation, corners[c][0], corners[c][1]));
+				right = Math.max(right, (int)rotate_x(rotation, corners[c][0], corners[c][1]));
+				up = Math.min(up, (int)rotate_y(rotation, corners[c][0], corners[c][1]));
+				low = Math.max(low, (int)rotate_y(rotation, corners[c][0], corners[c][1]));
 			}
 			int width2 = right - left;
 			int height2 = low - up;
@@ -148,6 +148,30 @@ public class ImageDisplay {
 			height = height2;
 		}
 		return imgTwo;
+	}
+
+	private BufferedImage Transformation2(float scale, float rotation){
+		// update from discussion (new rubric only show 512*512)
+		BufferedImage new_img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+
+		while(rotation < 0) rotation += 360;
+		while(rotation >= 360) rotation -= 360;
+		float angle = 360-rotation;
+
+		int cent_x = width/2;
+		int cent_y = height/2;
+
+		for(int y = 0; y < height; y++){
+			for(int x = 0; x < width; x++){
+				int oldx = Math.round(rotate_x(angle, x - cent_x, y - cent_y)/scale) + cent_x;
+				int oldy = Math.round(rotate_y(angle, x - cent_x, y - cent_y)/scale) + cent_y;
+				int pix;
+				if (oldx < 0 || oldy < 0 || oldx >= width || oldy >= height) pix = 0xffffffff;
+				else pix = imgOne.getRGB(oldx, oldy);
+				new_img.setRGB(x, y, pix);
+			}
+		}
+		return new_img;
 	}
 	
 	private void LPF(BufferedImage old_img, BufferedImage new_img){
@@ -236,7 +260,8 @@ public class ImageDisplay {
 
 		if (time == 0 || frames == 0){
 			// Transformation
-			imgTwo = Transformation(width, height, scale, rotation, imgTwo);
+			//imgTwo = Transformation(width, height, scale, rotation, imgTwo);
+			imgTwo = Transformation2(scale, rotation);
 			// Use label to display the image
 			Display();
 		}else{
