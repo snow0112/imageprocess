@@ -145,7 +145,6 @@ public class ImageDisplay {
 	class TimeListener implements ActionListener{
 		@Override
 		public void actionPerformed(ActionEvent e){
-			//System.out.println(width);
 			if (count >= total) {
 				timer.stop();
 				return;
@@ -187,17 +186,9 @@ public class ImageDisplay {
 
 		// Read a parameter from command line
 		
-		//scale = Float.parseFloat(args[1]);
-		//rotation = Float.parseFloat(args[2]);
 		int alising = Integer.parseInt(args[3]);
 		float fps = Integer.parseInt(args[4]);
 		float time = Integer.parseInt(args[5]);
-		
-		//System.out.println("The second parameter (scale) was: " + scale);
-		//System.out.println("The third parameter (rotation) was: " + rotation);
-		//System.out.println("The forth parameter (alising) was: " + alising);
-		//System.out.println("The fifth parameter (frames) was: " + fps);
-		//System.out.println("The sixth parameter (time) was: " + time);
 		
 		// Read in the specified image
 		imgOne = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
@@ -230,7 +221,6 @@ public class ImageDisplay {
 			dr = finalrotation/total;
 			ActionListener listener = new TimeListener();
 			timer = new Timer(delay, listener);
-			//System.out.println(delay);
 			frame = new JFrame();
 			Display(frame);
 			timer.start();
