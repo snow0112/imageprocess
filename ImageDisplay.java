@@ -5,11 +5,7 @@ import java.awt.event.ActionListener;
 import java.awt.image.*;
 import java.io.*;
 import java.util.TimerTask;
-
 import javax.swing.*;
-
-
-
 
 public class ImageDisplay {
 
@@ -25,9 +21,6 @@ public class ImageDisplay {
 	Timer timer;
 	int total;
 	int count = 0;
-	//private int deg;
-	//private int x;
-	//private int y;
 
 	/** Read Image RGB
 	 *  Reads the image of given width and height at the given imgPath into the provided BufferedImage.
@@ -179,21 +172,18 @@ public class ImageDisplay {
 		frame.pack();
 		frame.setVisible(true);
 
-		
 	}
 
 	public void showIms(String[] args){
 
 		// Read a parameter from command line
-		
 		int alising = Integer.parseInt(args[3]);
-		float fps = Integer.parseInt(args[4]);
-		float time = Integer.parseInt(args[5]);
+		float fps = Float.parseFloat(args[4]);
+		float time = Float.parseFloat(args[5]);
 		
 		// Read in the specified image
 		imgOne = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 		readImageRGB(width, height, args[0], imgOne);
-
 
 		// Aliasing
 		if (alising == 1){
@@ -224,6 +214,7 @@ public class ImageDisplay {
 			frame = new JFrame();
 			Display(frame);
 			timer.start();
+
 		}
 	}
 	public static void main(String[] args) {
