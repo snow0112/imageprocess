@@ -18,8 +18,13 @@ public class ImageDisplay {
 	BufferedImage imgOne, imgTwo;
 	int width = 512;//1920;
 	int height = 512;//1080;
-	float sclale = 1;
+	float scale = 1;
 	float rotation = 0;
+	float ds;
+	float dr;
+	Timer timer;
+	int total;
+	int count = 0;
 	//private int deg;
 	//private int x;
 	//private int y;
@@ -140,8 +145,15 @@ public class ImageDisplay {
 	class TimeListener implements ActionListener{
 		@Override
 		public void actionPerformed(ActionEvent e){
-			System.out.println(width);
-			imgTwo = Transformation2( (float)0.9, (float)10.0);
+			//System.out.println(width);
+			if (count >= total) {
+				timer.stop();
+				return;
+			}
+			count += 1;
+			scale += ds;
+			rotation += dr;
+			imgTwo = Transformation2( scale, rotation);
 			frame.remove(lbIm1);
 			Display(frame);
 		}
@@ -175,17 +187,17 @@ public class ImageDisplay {
 
 		// Read a parameter from command line
 		
-		float scale = Float.parseFloat(args[1]);
-		float rotation = Float.parseFloat(args[2]);
+		//scale = Float.parseFloat(args[1]);
+		//rotation = Float.parseFloat(args[2]);
 		int alising = Integer.parseInt(args[3]);
-		int fps = Integer.parseInt(args[4]);
-		int time = Integer.parseInt(args[5]);
+		float fps = Integer.parseInt(args[4]);
+		float time = Integer.parseInt(args[5]);
 		
-		System.out.println("The second parameter (scale) was: " + scale);
-		System.out.println("The third parameter (rotation) was: " + rotation);
-		System.out.println("The forth parameter (alising) was: " + alising);
-		System.out.println("The fifth parameter (frames) was: " + fps);
-		System.out.println("The sixth parameter (time) was: " + time);
+		//System.out.println("The second parameter (scale) was: " + scale);
+		//System.out.println("The third parameter (rotation) was: " + rotation);
+		//System.out.println("The forth parameter (alising) was: " + alising);
+		//System.out.println("The fifth parameter (frames) was: " + fps);
+		//System.out.println("The sixth parameter (time) was: " + time);
 		
 		// Read in the specified image
 		imgOne = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
@@ -199,22 +211,28 @@ public class ImageDisplay {
 		}
 
 		if (time == 0 || fps == 0){
+
 			// Transformation
+			scale = Float.parseFloat(args[1]);
+			rotation = Float.parseFloat(args[2]);
 			imgTwo = Transformation2(scale, rotation);
 			// Use label to display the image
 			frame = new JFrame();
 			Display(frame);
-			//frame.pack();
-			//frame.setVisible(true);
+
 		}else{
-			int delay = 5000;
+
+			int delay = (int)(1000.0/fps);
+			total = (int)(fps*time);
+			float finalscale = Float.parseFloat(args[1]);
+			float finalrotation = Float.parseFloat(args[2]);
+			ds = (finalscale-1)/total;
+			dr = finalrotation/total;
 			ActionListener listener = new TimeListener();
-			Timer timer = new Timer(delay, listener);
-			//System.out.println("start timer");
+			timer = new Timer(delay, listener);
+			//System.out.println(delay);
 			frame = new JFrame();
 			Display(frame);
-			//frame.pack();
-			//frame.setVisible(true);
 			timer.start();
 		}
 	}
