@@ -1,8 +1,14 @@
 
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.image.*;
 import java.io.*;
+import java.util.TimerTask;
+
 import javax.swing.*;
+
+
 
 
 public class ImageDisplay {
@@ -12,6 +18,8 @@ public class ImageDisplay {
 	BufferedImage imgOne, imgTwo;
 	int width = 512;//1920;
 	int height = 512;//1080;
+	float sclale = 1;
+	float rotation = 0;
 	//private int deg;
 	//private int x;
 	//private int y;
@@ -72,7 +80,7 @@ public class ImageDisplay {
 		return (float) ans;
 	}
 
-	private BufferedImage Transformation2(float scale, float rotation){
+	public BufferedImage Transformation2(float scale, float rotation){
 		// update from discussion (new rubric only show 512*512)
 		BufferedImage new_img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 
@@ -129,9 +137,18 @@ public class ImageDisplay {
 
 	}
 
-	private void Display(){
+	class TimeListener implements ActionListener{
+		@Override
+		public void actionPerformed(ActionEvent e){
+			System.out.println(width);
+			imgTwo = Transformation2( (float)0.9, (float)10.0);
+			frame.remove(lbIm1);
+			Display(frame);
+		}
+	}
+	
+	private void Display(JFrame frame){
 		// Use label to display the image
-		frame = new JFrame();
 		GridBagLayout gLayout = new GridBagLayout();
 		frame.getContentPane().setLayout(gLayout);
 
@@ -148,9 +165,10 @@ public class ImageDisplay {
 		c.gridx = 0;
 		c.gridy = 1;
 		frame.getContentPane().add(lbIm1, c);
-
 		frame.pack();
 		frame.setVisible(true);
+
+		
 	}
 
 	public void showIms(String[] args){
@@ -160,13 +178,13 @@ public class ImageDisplay {
 		float scale = Float.parseFloat(args[1]);
 		float rotation = Float.parseFloat(args[2]);
 		int alising = Integer.parseInt(args[3]);
-		int frames = Integer.parseInt(args[4]);
+		int fps = Integer.parseInt(args[4]);
 		int time = Integer.parseInt(args[5]);
 		
 		System.out.println("The second parameter (scale) was: " + scale);
 		System.out.println("The third parameter (rotation) was: " + rotation);
 		System.out.println("The forth parameter (alising) was: " + alising);
-		System.out.println("The fifth parameter (frames) was: " + frames);
+		System.out.println("The fifth parameter (frames) was: " + fps);
 		System.out.println("The sixth parameter (time) was: " + time);
 		
 		// Read in the specified image
@@ -180,20 +198,28 @@ public class ImageDisplay {
 			LPF(imgOne, imgTwo);
 		}
 
-		if (time == 0 || frames == 0){
+		if (time == 0 || fps == 0){
 			// Transformation
-			//imgTwo = Transformation(width, height, scale, rotation, imgTwo);
 			imgTwo = Transformation2(scale, rotation);
 			// Use label to display the image
-			Display();
+			frame = new JFrame();
+			Display(frame);
+			//frame.pack();
+			//frame.setVisible(true);
 		}else{
-
+			int delay = 5000;
+			ActionListener listener = new TimeListener();
+			Timer timer = new Timer(delay, listener);
+			//System.out.println("start timer");
+			frame = new JFrame();
+			Display(frame);
+			//frame.pack();
+			//frame.setVisible(true);
+			timer.start();
 		}
 	}
-
 	public static void main(String[] args) {
 		ImageDisplay ren = new ImageDisplay();
 		ren.showIms(args);
 	}
-
 }
