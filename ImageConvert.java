@@ -45,42 +45,6 @@ public class ImageConvert {
                     int b = (int) bytes[ind+height*width*2]; 
                     float H = -1;
 
-
-                    /*
-                    double alpha = 0.5*(2*r - g - b);
-                    double beta = sin60*(g-b);
-                    //double H = Math.atan(alpha/beta)/3.14159*180;
-
-                    if (H < 0 && alpha > 0) {
-                        H += 360;
-                        //System.out.println(H);
-                    }
-                    else if (alpha < 0) {
-                        H += 180;
-                        //System.out.println(H);
-                    }
-                    double H = Math.atan2(beta, alpha)/3.14159*180;
-                    */
-
-                    /*
-                    // hex
-                    float M = Math.max(Math.max(r,g),b);
-                    float m = Math.min(Math.min(r,g),b);
-                    float C = M-m;
-                    if (C == 0) H = -1;
-                    else if (M == r) {
-                        H = (((g-b))/C);
-                        if (H<0) H+= 6;
-                        //System.out.println(H);
-                    }
-                    else if (M == g) H = ((b-r)/C)+2;
-                    else if (M == b) H = ((r-g)/C)+4;
-                    H *= 60;
-
-                    //if (H < 0) H += 360;
-                    //System.out.println(H);
-                    */
-
                     int pix = 0xff000000 | ((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff);
                     r = (pix >> 16) & 0xff;
                     g = (pix >> 8) & 0xff;
@@ -89,10 +53,8 @@ public class ImageConvert {
                     float[] hsv = new float[3];
                     Color.RGBtoHSB(r,g,b,hsv);
                     H = hsv[0]*360;
-                    //System.out.println(H);
 
                     if ( H < h1 || H > h2){
-                        //int gray = (int) (0.2126*r + 0.7152*g + 0.0722*b);
                         int gray = Math.max(Math.max(r,g),b);
                         pix = 0xff000000 | ((gray & 0xff) << 16) | ((gray & 0xff) << 8) | (gray & 0xff);
                     }
