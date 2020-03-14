@@ -63,7 +63,6 @@ public class ImageDWT {
 		}
 	}
 
-
 	class TimeListener implements ActionListener{
 		@Override
 		public void actionPerformed(ActionEvent e){
@@ -175,8 +174,67 @@ public class ImageDWT {
         
     }
 
-    private BufferedImage IDWT(){
-        return imgTwo;
+    private int oldc1(int pix1, int pix2){
+        int r1 = (pix1 >> 16) & 0xff;
+        int g1 = (pix1 >> 8) & 0xff;
+        int b1 = (pix1) & 0xff;
+        int r2 = (pix2 >> 16) & 0xff;
+        int g2 = (pix2 >> 8) & 0xff;
+        int b2 = (pix2) & 0xff;
+        //r2 = 0; g2 = 0; b2 = 0;
+        //System.out.println(pix2+" "+r2+" "+g2+" "+b2);
+        
+        int r = (r1 + r2);
+        int g = (g1 + g2);
+        int b = (b1 + b2);
+        int pix = 0xff000000 | ((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff);
+        return pix;
+    }
+
+    private int oldc2(int pix1, int pix2){
+        int r1 = (pix1 >> 16) & 0xff;
+        int g1 = (pix1 >> 8) & 0xff;
+        int b1 = (pix1) & 0xff;
+        int r2 = (pix2 >> 16) & 0xff;
+        int g2 = (pix2 >> 8) & 0xff;
+        int b2 = (pix2) & 0xff;
+        //r2 = 0; g2 = 0; b2 = 0;
+
+        int r = (r1 - r2);
+        int g = (g1 - g2);
+        int b = (b1 - b2);
+        int pix = 0xff000000 | ((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff);
+        return pix;
+    }
+    
+    private void decode(int x, int y, int size){
+        
+        if (x == -1){
+            int iter = 0;
+            for (int i = 0; i < size ; i++){
+                int pix1 = imgOne.getRGB(i,y);
+                int pix2 = imgOne.getRGB(size+i,y);
+                System.out.println(pix2);
+                imgcoe.setRGB(iter++, y, oldc1(pix1,pix2));
+                imgcoe.setRGB(iter++, y, oldc2(pix1,pix2));  
+            }
+        }
+        else{
+            int iter = 0;
+            for (int i = 0; i < size ; i++){
+                int pix1 = imgOne.getRGB(x,i);
+                int pix2 = imgOne.getRGB(x,size+i);
+                imgcoe.setRGB(x, iter++, oldc1(pix1,pix2));
+                imgcoe.setRGB(x, iter++, oldc2(pix1,pix2));
+            }
+        }
+    }
+
+    private void IDWT(int size){
+        for(int y = 0; y < height; y++) decode(-1,y,size);
+        updateimgone();
+        for(int x = 0; x < width; x++) decode(x, -1,size);
+        updateimgone();
     }
     
     public void showIms(String[] args){
@@ -200,6 +258,19 @@ public class ImageDWT {
             while (level > n){
                 DWT(  (int) Math.pow(2, level-1));
                 level--;
+            }
+
+            double size = Math.pow(2, level);
+            int pix0 = 0xff000000;
+            for(int y = 0; y < height; y++){
+				for(int x = 0; x < width; x++){
+                    if (x >= size || y >= size) imgOne.setRGB(x, y, pix0);
+                }
+            }
+
+            while (level < 9){
+                IDWT( (int) Math.pow(2, level) );
+                level++;
             }
             imgTwo = imgOne;
 
