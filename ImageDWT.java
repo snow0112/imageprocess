@@ -17,6 +17,8 @@ public class ImageDWT {
 	Timer timer;
     int count = 0;
     int level = 9;
+    int[][][] temp = new int[3][width][height];
+    int[][][] coefficients = new int[3][width][height];
 
 	/** Read Image RGB
 	 *  Reads the image of given width and height at the given imgPath into the provided BufferedImage.
@@ -102,36 +104,6 @@ public class ImageDWT {
 		frame.setVisible(true);
 
     }
-
-    private int newc(int pix1, int pix2){
-        int r1 = (pix1 >> 16) & 0xff;
-        int g1 = (pix1 >> 8) & 0xff;
-        int b1 = (pix1) & 0xff;
-        int r2 = (pix2 >> 16) & 0xff;
-        int g2 = (pix2 >> 8) & 0xff;
-        int b2 = (pix2) & 0xff;
-
-        int r = (r1 + r2) /2;
-        int g = (g1 + g2) /2;
-        int b = (b1 + b2) /2;
-        int pix = 0xff000000 | ((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff);
-        return pix;
-    }
-
-    private int newd(int pix1, int pix2){
-        int r1 = (pix1 >> 16) & 0xff;
-        int g1 = (pix1 >> 8) & 0xff;
-        int b1 = (pix1) & 0xff;
-        int r2 = (pix2 >> 16) & 0xff;
-        int g2 = (pix2 >> 8) & 0xff;
-        int b2 = (pix2) & 0xff;
-
-        int r = (r1 - r2) /2;
-        int g = (g1 - g2) /2;
-        int b = (b1 - b2) /2;
-        int pix = 0xff000000 | ((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff);
-        return pix;
-    }
     
     private void encode(int x, int y, int size){
         //System.out.println(x +" "+y +" "+ size);
@@ -139,19 +111,37 @@ public class ImageDWT {
             //System.out.println(x +" "+y +" "+ size);
             int iter = 0;
             for (int i = 0; i < size ; i++){
-                int pix1 = imgOne.getRGB(iter++,y);
-                int pix2 = imgOne.getRGB(iter++,y);
-                imgcoe.setRGB(i, y, newc(pix1,pix2));
-                imgcoe.setRGB(size+i, y, newd(pix1,pix2));  
+                //int pix1 = imgOne.getRGB(iter++,y);
+                //int pix2 = imgOne.getRGB(iter++,y);
+                int r1 = coefficients[0][iter][y];
+                int g1 = coefficients[1][iter][y];
+                int b1 = coefficients[2][iter++][y];
+                int r2 = coefficients[0][iter][y];
+                int g2 = coefficients[1][iter][y];
+                int b2 = coefficients[2][iter++][y];
+                temp[0][i][y] = (r1+r2)/2;
+                temp[1][i][y] = (g1+g2)/2;
+                temp[2][i][y] = (b1+b2)/2;
+                temp[0][size+i][y] = (r1-r2)/2;
+                temp[1][size+i][y] = (g1-g2)/2;
+                temp[2][size+i][y] = (b1-b2)/2;
             }
         }
         else{
             int iter = 0;
             for (int i = 0; i < size ; i++){
-                int pix1 = imgOne.getRGB(x,iter++);
-                int pix2 = imgOne.getRGB(x,iter++);
-                imgcoe.setRGB(x, i, newc(pix1,pix2));
-                imgcoe.setRGB(x, size+i, newd(pix1,pix2));
+                int r1 = coefficients[0][x][iter];
+                int g1 = coefficients[1][x][iter];
+                int b1 = coefficients[2][x][iter++];
+                int r2 = coefficients[0][x][iter];
+                int g2 = coefficients[1][x][iter];
+                int b2 = coefficients[2][x][iter++];
+                temp[0][x][i] = (r1+r2)/2;
+                temp[1][x][i] = (g1+g2)/2;
+                temp[2][x][i] = (b1+b2)/2;
+                temp[0][x][size+i] = (r1-r2)/2;
+                temp[1][x][size+i] = (g1-g2)/2;
+                temp[2][x][size+i] = (b1-b2)/2;
                 
             }
         }
@@ -160,7 +150,9 @@ public class ImageDWT {
     private void updateimgone(){
         for(int y = 0; y < height; y++){
 			for(int x = 0; x < width; x++){
-                imgOne.setRGB(x, y, imgcoe.getRGB(x, y));
+                coefficients[0][x][y] = temp[0][x][y];
+                coefficients[1][x][y] = temp[1][x][y];;
+                coefficients[2][x][y] = temp[2][x][y];;
             }
         }
     }
@@ -173,59 +165,42 @@ public class ImageDWT {
         updateimgone();
         
     }
-
-    private int oldc1(int pix1, int pix2){
-        int r1 = (pix1 >> 16) & 0xff;
-        int g1 = (pix1 >> 8) & 0xff;
-        int b1 = (pix1) & 0xff;
-        int r2 = (pix2 >> 16) & 0xff;
-        int g2 = (pix2 >> 8) & 0xff;
-        int b2 = (pix2) & 0xff;
-        //r2 = 0; g2 = 0; b2 = 0;
-        //System.out.println(pix2+" "+r2+" "+g2+" "+b2);
-        
-        int r = (r1 + r2);
-        int g = (g1 + g2);
-        int b = (b1 + b2);
-        int pix = 0xff000000 | ((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff);
-        return pix;
-    }
-
-    private int oldc2(int pix1, int pix2){
-        int r1 = (pix1 >> 16) & 0xff;
-        int g1 = (pix1 >> 8) & 0xff;
-        int b1 = (pix1) & 0xff;
-        int r2 = (pix2 >> 16) & 0xff;
-        int g2 = (pix2 >> 8) & 0xff;
-        int b2 = (pix2) & 0xff;
-        //r2 = 0; g2 = 0; b2 = 0;
-
-        int r = (r1 - r2);
-        int g = (g1 - g2);
-        int b = (b1 - b2);
-        int pix = 0xff000000 | ((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff);
-        return pix;
-    }
     
     private void decode(int x, int y, int size){
         
         if (x == -1){
             int iter = 0;
             for (int i = 0; i < size ; i++){
-                int pix1 = imgOne.getRGB(i,y);
-                int pix2 = imgOne.getRGB(size+i,y);
-                System.out.println(pix2);
-                imgcoe.setRGB(iter++, y, oldc1(pix1,pix2));
-                imgcoe.setRGB(iter++, y, oldc2(pix1,pix2));  
+                int r1 = coefficients[0][i][y];
+                int g1 = coefficients[1][i][y];
+                int b1 = coefficients[2][i][y];
+                int r2 = 0;
+                int g2 = 0;
+                int b2 = 0;
+                temp[0][iter][y] = (r1+r2);
+                temp[1][iter][y] = (g1+g2);
+                temp[2][iter++][y] = (b1+b2);
+                temp[0][iter][y] = (r1-r2);
+                temp[1][iter][y] = (g1-g2);
+                temp[2][iter++][y] = (b1-b2);
             }
         }
         else{
             int iter = 0;
             for (int i = 0; i < size ; i++){
-                int pix1 = imgOne.getRGB(x,i);
-                int pix2 = imgOne.getRGB(x,size+i);
-                imgcoe.setRGB(x, iter++, oldc1(pix1,pix2));
-                imgcoe.setRGB(x, iter++, oldc2(pix1,pix2));
+
+                int r1 = coefficients[0][x][i];
+                int g1 = coefficients[1][x][i];
+                int b1 = coefficients[2][x][i];
+                int r2 = 0;
+                int g2 = 0;
+                int b2 = 0;
+                temp[0][x][iter] = (r1+r2);
+                temp[1][x][iter] = (g1+g2);
+                temp[2][x][iter++] = (b1+b2);
+                temp[0][x][iter] = (r1-r2);
+                temp[1][x][iter] = (g1-g2);
+                temp[2][x][iter++] = (b1-b2);
             }
         }
     }
@@ -248,7 +223,16 @@ public class ImageDWT {
         imgcoe = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         for(int y = 0; y < height; y++){
 			for(int x = 0; x < width; x++){
-                imgcoe.setRGB(x, y, imgOne.getRGB(x, y));
+                int pix = imgOne.getRGB(x, y);
+                int r = (pix >> 16) & 0xff;
+                int g = (pix >> 8) & 0xff;
+                int b = (pix) & 0xff;
+                coefficients[0][x][y] = r;
+                coefficients[1][x][y] = g;
+                coefficients[2][x][y] = b;
+                temp[0][x][y] = r;
+                temp[1][x][y] = g;
+                temp[2][x][y] = b;
             }
         }
 
@@ -260,17 +244,18 @@ public class ImageDWT {
                 level--;
             }
 
-            double size = Math.pow(2, level);
-            int pix0 = 0xff000000;
-            for(int y = 0; y < height; y++){
-				for(int x = 0; x < width; x++){
-                    if (x >= size || y >= size) imgOne.setRGB(x, y, pix0);
-                }
-            }
-
             while (level < 9){
                 IDWT( (int) Math.pow(2, level) );
                 level++;
+            }
+            for(int y = 0; y < height; y++){
+                for(int x = 0; x < width; x++){
+                    int r = coefficients[0][x][y];
+                    int g = coefficients[1][x][y];
+                    int b = coefficients[2][x][y];
+                    int pix = 0xff000000 | ((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff);
+                    imgOne.setRGB(x, y, pix);
+                }
             }
             imgTwo = imgOne;
 
