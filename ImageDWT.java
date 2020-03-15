@@ -83,72 +83,23 @@ public class ImageDWT {
                 }
             }
             
-            level = 0;
-            while(level < count){
-                IDWT( (int) Math.pow(2, level), 0 );
+            level = count -1;
+            IDWT( (int) Math.pow(2, level), 0 );
+            for(int y = 0; y < height; y++){
+                for(int x = 0; x < width; x++){
+                    for (int channel = 0; channel < 3; channel++) {
+                        backup[channel][x][y] = coefficients[channel][x][y];
+                    }
+                }
             }
+
+            
             while (level < 9) IDWT( (int) Math.pow(2, level), 1 );
             drawing();
 			frame.remove(lbIm1);
             Display(frame);
             
 		}
-    }
-
-    private void add_detail(){
-        int size =(int) Math.pow(2, count-1);
-        for(int y = 0; y < height; y++) hp(-1,y,size);
-        for(int x = 0; x < width; x++) hp(x, -1,size);
-    }
-
-    private void hp(int x, int y, int size){
-        if (x == -1){
-
-            System.out.println("x");
-            
-            for (int i = 0; i < size ; i++){
-                double r2 = backup[0][i+size][y];
-                double g2 = backup[1][i+size][y];
-                double b2 = backup[2][i+size][y];
-
-                for (int iter = 0; iter < width; iter++){
-                    double xx = size*iter - i;
-                    if (xx >= 0 && x < 0.5) {
-                        coefficients[0][iter][y] += r2;
-                        coefficients[1][iter][y] += g2;
-                        coefficients[2][iter][y] += b2;
-                    }
-                    else if (xx >= 0.5 && xx < 1){
-                        coefficients[0][iter][y] -= r2;
-                        coefficients[1][iter][y] -= g2;
-                        coefficients[2][iter++][y] -= b2;
-                    }
-                }
-            }
-        }
-        else{
-            System.out.println("y");
-            for (int i = 0; i < size ; i++){
-                double r2 = backup[0][x][i+size];
-                double g2 = backup[1][x][i+size];
-                double b2 = backup[2][x][i+size];
-
-                for (int iter = 0; iter < height; iter++){
-                    double xx = size*iter - i;
-                    if (xx >= 0 && x < 0.5) {
-                        coefficients[0][x][iter] += r2;
-                        coefficients[1][x][iter] += g2;
-                        coefficients[2][x][iter++] += b2;
-                    }
-                    else if (xx >= 0.5 && xx < 1){
-                        coefficients[0][x][iter] -= r2;
-                        coefficients[1][x][iter] -= g2;
-                        coefficients[2][x][iter++] -= b2;
-                    }
-                }
-            }
-        }
-
     }
     
     private void drawing(){
