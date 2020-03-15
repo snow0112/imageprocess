@@ -17,8 +17,9 @@ public class ImageDWT {
 	Timer timer;
     int count = 0;
     int level = 9;
-    int[][][] temp = new int[3][width][height];
-    int[][][] coefficients = new int[3][width][height];
+    double[][][] temp = new double[3][width][height];
+    double[][][] coefficients = new double[3][width][height];
+    double[][][] backup = new double[3][width][height]; 
 
 	/** Read Image RGB
 	 *  Reads the image of given width and height at the given imgPath into the provided BufferedImage.
@@ -71,14 +72,38 @@ public class ImageDWT {
 			if (count >= 9) {
 				timer.stop();
 				return;
-			}
-			count += 1;
-			//scale += ds;
-			//rotation += dr;
-			//imgTwo = Transformation2( scale, rotation);
-			//frame.remove(lbIm1);
-            //Display(frame);
-            System.out.println("animation");
+            }
+            // back up coefficients
+            for(int y = 0; y < height; y++){
+                for(int x = 0; x < width; x++){
+                    for (int channel = 0; channel < 3; channel++) backup[channel][x][y] = coefficients[channel][x][y];
+                }
+            }
+            
+            while (level < 9) IDWT( (int) Math.pow(2, level), 1 );
+            for(int y = 0; y < height; y++){
+                for(int x = 0; x < width; x++){
+                    int r = (int)coefficients[0][x][y];
+                    int g = (int)coefficients[1][x][y];
+                    int b = (int)coefficients[2][x][y];
+                    int pix = 0xff000000 | ((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff);
+                    imgTwo.setRGB(x, y, pix);
+                }
+            }
+			frame.remove(lbIm1);
+            Display(frame);
+
+            // go to next level(count)
+            
+            // get coefficients from backup
+            for(int y = 0; y < height; y++){
+                for(int x = 0; x < width; x++){
+                    for (int channel = 0; channel < 3; channel++) coefficients[channel][x][y] = backup[channel][x][y];
+                }
+            }
+            level = count;
+            IDWT( (int) Math.pow(2, level), 0 );
+            count += 1;
 		}
 	}
 	
@@ -113,35 +138,35 @@ public class ImageDWT {
             for (int i = 0; i < size ; i++){
                 //int pix1 = imgOne.getRGB(iter++,y);
                 //int pix2 = imgOne.getRGB(iter++,y);
-                int r1 = coefficients[0][iter][y];
-                int g1 = coefficients[1][iter][y];
-                int b1 = coefficients[2][iter++][y];
-                int r2 = coefficients[0][iter][y];
-                int g2 = coefficients[1][iter][y];
-                int b2 = coefficients[2][iter++][y];
-                temp[0][i][y] = (r1+r2)/2;
-                temp[1][i][y] = (g1+g2)/2;
-                temp[2][i][y] = (b1+b2)/2;
-                temp[0][size+i][y] = (r1-r2)/2;
-                temp[1][size+i][y] = (g1-g2)/2;
-                temp[2][size+i][y] = (b1-b2)/2;
+                double r1 = coefficients[0][iter][y];
+                double g1 = coefficients[1][iter][y];
+                double b1 = coefficients[2][iter++][y];
+                double r2 = coefficients[0][iter][y];
+                double g2 = coefficients[1][iter][y];
+                double b2 = coefficients[2][iter++][y];
+                temp[0][i][y] = (r1+r2)/2.0;
+                temp[1][i][y] = (g1+g2)/2.0;
+                temp[2][i][y] = (b1+b2)/2.0;
+                temp[0][size+i][y] = (r1-r2)/2.0;
+                temp[1][size+i][y] = (g1-g2)/2.0;
+                temp[2][size+i][y] = (b1-b2)/2.0;
             }
         }
         else{
             int iter = 0;
             for (int i = 0; i < size ; i++){
-                int r1 = coefficients[0][x][iter];
-                int g1 = coefficients[1][x][iter];
-                int b1 = coefficients[2][x][iter++];
-                int r2 = coefficients[0][x][iter];
-                int g2 = coefficients[1][x][iter];
-                int b2 = coefficients[2][x][iter++];
-                temp[0][x][i] = (r1+r2)/2;
-                temp[1][x][i] = (g1+g2)/2;
-                temp[2][x][i] = (b1+b2)/2;
-                temp[0][x][size+i] = (r1-r2)/2;
-                temp[1][x][size+i] = (g1-g2)/2;
-                temp[2][x][size+i] = (b1-b2)/2;
+                double r1 = coefficients[0][x][iter];
+                double g1 = coefficients[1][x][iter];
+                double b1 = coefficients[2][x][iter++];
+                double r2 = coefficients[0][x][iter];
+                double g2 = coefficients[1][x][iter];
+                double b2 = coefficients[2][x][iter++];
+                temp[0][x][i] = (r1+r2)/2.0;
+                temp[1][x][i] = (g1+g2)/2.0;
+                temp[2][x][i] = (b1+b2)/2.0;
+                temp[0][x][size+i] = (r1-r2)/2.0;
+                temp[1][x][size+i] = (g1-g2)/2.0;
+                temp[2][x][size+i] = (b1-b2)/2.0;
                 
             }
         }
@@ -166,17 +191,24 @@ public class ImageDWT {
         
     }
     
-    private void decode(int x, int y, int size){
+    private void decode(int x, int y, int size, int display){
         
         if (x == -1){
             int iter = 0;
             for (int i = 0; i < size ; i++){
-                int r1 = coefficients[0][i][y];
-                int g1 = coefficients[1][i][y];
-                int b1 = coefficients[2][i][y];
-                int r2 = 0;
-                int g2 = 0;
-                int b2 = 0;
+                double r1 = coefficients[0][i][y];
+                double g1 = coefficients[1][i][y];
+                double b1 = coefficients[2][i][y];
+
+                double r2 = coefficients[0][i+size][y];
+                double g2 = coefficients[1][i+size][y];
+                double b2 = coefficients[2][i+size][y];
+                if (display == 1) {
+                    r2 = 0;
+                    g2 = 0;
+                    b2 = 0;
+                }
+
                 temp[0][iter][y] = (r1+r2);
                 temp[1][iter][y] = (g1+g2);
                 temp[2][iter++][y] = (b1+b2);
@@ -189,12 +221,18 @@ public class ImageDWT {
             int iter = 0;
             for (int i = 0; i < size ; i++){
 
-                int r1 = coefficients[0][x][i];
-                int g1 = coefficients[1][x][i];
-                int b1 = coefficients[2][x][i];
-                int r2 = 0;
-                int g2 = 0;
-                int b2 = 0;
+                double r1 = coefficients[0][x][i];
+                double g1 = coefficients[1][x][i];
+                double b1 = coefficients[2][x][i];
+            
+                double r2 = coefficients[0][x][i+size];
+                double g2 = coefficients[1][x][i+size];
+                double b2 = coefficients[2][x][i+size];
+                if (display == 1) {
+                    r2 = 0;
+                    g2 = 0;
+                    b2 = 0;
+                }
                 temp[0][x][iter] = (r1+r2);
                 temp[1][x][iter] = (g1+g2);
                 temp[2][x][iter++] = (b1+b2);
@@ -205,11 +243,12 @@ public class ImageDWT {
         }
     }
 
-    private void IDWT(int size){
-        for(int y = 0; y < height; y++) decode(-1,y,size);
+    private void IDWT(int size, int display){
+        for(int y = 0; y < height; y++) decode(-1,y,size,display);
         updateimgone();
-        for(int x = 0; x < width; x++) decode(x, -1,size);
+        for(int x = 0; x < width; x++) decode(x, -1,size,display);
         updateimgone();
+        level++;
     }
     
     public void showIms(String[] args){
@@ -220,7 +259,7 @@ public class ImageDWT {
 		// Read in the specified image
 		imgOne = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         readImageRGB(width, height, args[0], imgOne);
-        imgcoe = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        imgTwo = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         for(int y = 0; y < height; y++){
 			for(int x = 0; x < width; x++){
                 int pix = imgOne.getRGB(x, y);
@@ -245,31 +284,34 @@ public class ImageDWT {
             }
 
             while (level < 9){
-                IDWT( (int) Math.pow(2, level) );
-                level++;
+                IDWT( (int) Math.pow(2, level), 1 );
             }
+            // Use label to display the image
             for(int y = 0; y < height; y++){
                 for(int x = 0; x < width; x++){
-                    int r = coefficients[0][x][y];
-                    int g = coefficients[1][x][y];
-                    int b = coefficients[2][x][y];
+                    int r = (int)coefficients[0][x][y];
+                    int g = (int)coefficients[1][x][y];
+                    int b = (int)coefficients[2][x][y];
                     int pix = 0xff000000 | ((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff);
-                    imgOne.setRGB(x, y, pix);
+                    imgTwo.setRGB(x, y, pix);
                 }
             }
-            imgTwo = imgOne;
-
-			// Use label to display the image
 			frame = new JFrame();
 			Display(frame);
 
 		}else{
 
-            // progressive DWT (entire DWT to 0)
-
-			int delay = 300;
+            // progressive DWT
+            // entire DWT to 0
+            while (level > count){
+                DWT(  (int) Math.pow(2, level-1));
+                level--;
+            }
+            
+			int delay = 1000;
 			ActionListener listener = new TimeListener();
-			timer = new Timer(delay, listener);
+            timer = new Timer(delay, listener);
+            
 			frame = new JFrame();
 			Display(frame);
 			timer.start();
