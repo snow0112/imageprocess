@@ -73,39 +73,95 @@ public class ImageDWT {
 				timer.stop();
 				return;
             }
-            // back up coefficients
+            count++;
             for(int y = 0; y < height; y++){
                 for(int x = 0; x < width; x++){
-                    for (int channel = 0; channel < 3; channel++) backup[channel][x][y] = coefficients[channel][x][y];
+                    for (int channel = 0; channel < 3; channel++) {
+                        coefficients[channel][x][y] = backup[channel][x][y];
+                        temp[channel][x][y] = backup[channel][x][y];
+                    }
                 }
             }
             
-            while (level < 9) IDWT( (int) Math.pow(2, level), 1 );
-            for(int y = 0; y < height; y++){
-                for(int x = 0; x < width; x++){
-                    int r = (int)coefficients[0][x][y];
-                    int g = (int)coefficients[1][x][y];
-                    int b = (int)coefficients[2][x][y];
-                    int pix = 0xff000000 | ((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff);
-                    imgTwo.setRGB(x, y, pix);
-                }
+            level = 0;
+            while(level < count){
+                IDWT( (int) Math.pow(2, level), 0 );
             }
+            while (level < 9) IDWT( (int) Math.pow(2, level), 1 );
+            drawing();
 			frame.remove(lbIm1);
             Display(frame);
-
-            // go to next level(count)
             
-            // get coefficients from backup
-            for(int y = 0; y < height; y++){
-                for(int x = 0; x < width; x++){
-                    for (int channel = 0; channel < 3; channel++) coefficients[channel][x][y] = backup[channel][x][y];
+		}
+    }
+
+    private void add_detail(){
+        int size =(int) Math.pow(2, count-1);
+        for(int y = 0; y < height; y++) hp(-1,y,size);
+        for(int x = 0; x < width; x++) hp(x, -1,size);
+    }
+
+    private void hp(int x, int y, int size){
+        if (x == -1){
+
+            System.out.println("x");
+            
+            for (int i = 0; i < size ; i++){
+                double r2 = backup[0][i+size][y];
+                double g2 = backup[1][i+size][y];
+                double b2 = backup[2][i+size][y];
+
+                for (int iter = 0; iter < width; iter++){
+                    double xx = size*iter - i;
+                    if (xx >= 0 && x < 0.5) {
+                        coefficients[0][iter][y] += r2;
+                        coefficients[1][iter][y] += g2;
+                        coefficients[2][iter][y] += b2;
+                    }
+                    else if (xx >= 0.5 && xx < 1){
+                        coefficients[0][iter][y] -= r2;
+                        coefficients[1][iter][y] -= g2;
+                        coefficients[2][iter++][y] -= b2;
+                    }
                 }
             }
-            level = count;
-            IDWT( (int) Math.pow(2, level), 0 );
-            count += 1;
-		}
-	}
+        }
+        else{
+            System.out.println("y");
+            for (int i = 0; i < size ; i++){
+                double r2 = backup[0][x][i+size];
+                double g2 = backup[1][x][i+size];
+                double b2 = backup[2][x][i+size];
+
+                for (int iter = 0; iter < height; iter++){
+                    double xx = size*iter - i;
+                    if (xx >= 0 && x < 0.5) {
+                        coefficients[0][x][iter] += r2;
+                        coefficients[1][x][iter] += g2;
+                        coefficients[2][x][iter++] += b2;
+                    }
+                    else if (xx >= 0.5 && xx < 1){
+                        coefficients[0][x][iter] -= r2;
+                        coefficients[1][x][iter] -= g2;
+                        coefficients[2][x][iter++] -= b2;
+                    }
+                }
+            }
+        }
+
+    }
+    
+    private void drawing(){
+        for(int y = 0; y < height; y++){
+            for(int x = 0; x < width; x++){
+                int r = (int)coefficients[0][x][y];
+                int g = (int)coefficients[1][x][y];
+                int b = (int)coefficients[2][x][y];
+                int pix = 0xff000000 | ((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff);
+                imgTwo.setRGB(x, y, pix);
+            }
+        }
+    }
 	
 	private void Display(JFrame frame){
 		// Use label to display the image
@@ -175,9 +231,7 @@ public class ImageDWT {
     private void updateimgone(){
         for(int y = 0; y < height; y++){
 			for(int x = 0; x < width; x++){
-                coefficients[0][x][y] = temp[0][x][y];
-                coefficients[1][x][y] = temp[1][x][y];;
-                coefficients[2][x][y] = temp[2][x][y];;
+                for (int channel = 0; channel < 3; channel++) coefficients[channel][x][y] = temp[channel][x][y];
             }
         }
     }
@@ -287,15 +341,7 @@ public class ImageDWT {
                 IDWT( (int) Math.pow(2, level), 1 );
             }
             // Use label to display the image
-            for(int y = 0; y < height; y++){
-                for(int x = 0; x < width; x++){
-                    int r = (int)coefficients[0][x][y];
-                    int g = (int)coefficients[1][x][y];
-                    int b = (int)coefficients[2][x][y];
-                    int pix = 0xff000000 | ((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff);
-                    imgTwo.setRGB(x, y, pix);
-                }
-            }
+            drawing();
 			frame = new JFrame();
 			Display(frame);
 
@@ -307,11 +353,20 @@ public class ImageDWT {
                 DWT(  (int) Math.pow(2, level-1));
                 level--;
             }
+            // back up coefficients at level 0
+            for(int y = 0; y < height; y++){
+                for(int x = 0; x < width; x++){
+                    for (int channel = 0; channel < 3; channel++) backup[channel][x][y] = coefficients[channel][x][y];
+                }
+            }
             
-			int delay = 1000;
+			int delay = 300;
 			ActionListener listener = new TimeListener();
             timer = new Timer(delay, listener);
-            
+
+            while (level < 9) IDWT( (int) Math.pow(2, level), 1 );
+            drawing();
+
 			frame = new JFrame();
 			Display(frame);
 			timer.start();
