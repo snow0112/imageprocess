@@ -2,6 +2,8 @@
 
 It is the assignemnt of 2020 spring csci567 multimedia system design in USC.
 
+The first part is about image scaling, rotation, alising.
+
 To run the code from command line, first compile with:
 
 >> javac ImageDisplay.java
@@ -23,6 +25,9 @@ F will be number of Frames per second to render an animated transition from the 
 
 T : Transition Time in seconds to show the transition from start to end state as.
 
+
+The second part is about changing color space.
+
 To run the code from command line, first compile with:
 
 >> javac ImageConvert.java
@@ -36,6 +41,9 @@ h1 and h2 will be a number between 0-360. This will provide the hue thresholds f
 h1 < h2
 
 The image pixels are segmented based on two threshold values in the HSV color space, using the hue values as thresholds. All the pixels falling between these two hue thresholds will be displayed in the original color in the output image, whereas all the other pixels outside the threshold will be displayed in gray.
+
+
+The third part is about image compression
 
 To run the code from command line, first compile with:
 
